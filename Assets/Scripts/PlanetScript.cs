@@ -71,4 +71,14 @@ public class PlanetScript : MonoBehaviour
         return newAcceleration;
 
     }
+
+    public void Reset()
+    {
+        position = startPosition;
+        velocity = startVelocity;
+        
+        transform.position = position;
+
+        this.GetComponent<TrailRenderer>().Clear();
+    }
 }
