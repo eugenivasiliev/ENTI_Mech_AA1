@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
@@ -45,7 +44,7 @@ public class PlanetManager : MonoBehaviour
 
     [Header("Camera")]
     [SerializeField] private Camera cam;
-    [SerializeField] private float scroll = 5.0f;
+    [SerializeField] private float scroll = 15.0f;
 
     void Start()
     {
@@ -55,29 +54,38 @@ public class PlanetManager : MonoBehaviour
         planets = GetComponentsInChildren<PlanetScript>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        float displace = scroll * planets[(int)curPlanet].gameObject.transform.localScale.x;
+        //Speed
+        if (Input.GetKeyDown(KeyCode.UpArrow)) speedMult += 1f;
+        if (Input.GetKeyDown(KeyCode.DownArrow)) speedMult -= 1f;
+        speedMult = Mathf.Clamp(speedMult, 1f, 100f);
+        speedText.text = "Speed = x" + speedMult.ToString("0.00");
 
+        //Focused planet
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) curPlanet = (curPlanet > 0) ? curPlanet - 1 : Planet.COUNT - 1;
+        if (Input.GetKeyDown(KeyCode.RightArrow)) curPlanet = (Planet)(((int)curPlanet + 1) % (int)Planet.COUNT);
+        planetText.text = "Looking at " + planets[(int)curPlanet].gameObject.name;
+
+        //Zoom
+        scroll -= Input.mouseScrollDelta.y;
+        scroll = Mathf.Clamp(scroll, 1.0f, 30.0f);
+
+        //Camera config
+        float displace = scroll * planets[(int)curPlanet].gameObject.transform.localScale.x;
         cam.transform.position = planets[(int)curPlanet].transform.position + Vector3.back * displace + Vector3.down * displace;
         cam.transform.LookAt(planets[(int)curPlanet].transform.position);
 
-        if (Input.GetKeyDown(KeyCode.UpArrow)) speedMult += 1f;
-        if (Input.GetKeyDown(KeyCode.DownArrow)) speedMult = Mathf.Max(1f, speedMult - 1f);
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) curPlanet = (curPlanet > 0) ? curPlanet - 1 : Planet.COUNT - 1;
-        if (Input.GetKeyDown(KeyCode.RightArrow)) curPlanet = (Planet)(((int)curPlanet + 1) % (int)Planet.COUNT);
+        //Pause
         if (Input.GetKeyDown(KeyCode.Space)) paused = !paused;
-        if (Input.GetKeyDown(KeyCode.R)) Reset();
         pauseIcon.gameObject.SetActive(paused);
-        scroll -= Input.mouseScrollDelta.y;
-        scroll = Mathf.Clamp(scroll, 2.0f, 30.0f);
 
+        //Reset
+        if (Input.GetKeyDown(KeyCode.R)) Reset();
+
+        //Time control
         curTime += stepTime * speedMult;
         yearText.text = "Year " + Mathf.Floor(curTime);
-        planetText.text = "Looking at " + planets[(int)curPlanet].gameObject.name;
-        speedText.text = "Speed = x" + speedMult.ToString("0.00");
-
     }
 
     private void Reset()

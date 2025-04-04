@@ -24,10 +24,8 @@ public class PlanetScript : MonoBehaviour
 
     void Start()
     {
-
         position = startPosition;
         velocity = startVelocity;
-
         transform.position = position;
     }
 
@@ -36,8 +34,8 @@ public class PlanetScript : MonoBehaviour
         (position, velocity) = RungeKutta4(position, velocity);
         transform.position = position;
     }
-    private (Vector3, Vector3) differentialFunction(Vector3 _position, Vector3 _velocity) =>
-        (_velocity, Acceleration(_position));
+
+    private (Vector3, Vector3) differentialFunction(Vector3 _position, Vector3 _velocity) => (_velocity, Acceleration(_position));
 
     private (Vector3, Vector3) RungeKutta4(Vector3 _position, Vector3 _velocity)
     {
@@ -49,36 +47,26 @@ public class PlanetScript : MonoBehaviour
         (K3position, K3velocity) = differentialFunction(_position + dt * 0.5f * K2position, _velocity + dt * 0.5f * K2velocity);
         (K4position, K4velocity) = differentialFunction(_position + dt * K3position, _velocity + dt * K3velocity);
 
-        Vector3 newPosition;
-        Vector3 newVelocity;
-        newPosition = _position + dt / 6 * (K1position + 2 * K2position + 2 * K3position + K4position);
-        newVelocity = _velocity + dt / 6 * (K1velocity + 2 * K2velocity + 2 * K3velocity + K4velocity);
+        Vector3 newPosition = _position + dt / 6 * (K1position + 2 * K2position + 2 * K3position + K4position);
+        Vector3 newVelocity = _velocity + dt / 6 * (K1velocity + 2 * K2velocity + 2 * K3velocity + K4velocity);
 
         return (newPosition, newVelocity);
-
     }
 
     private Vector3 Acceleration(Vector3 _position)
     {
         Vector3 newAcceleration = Vector3.zero;
         foreach (PlanetScript p in PlanetManager.Instance.Planets)
-        {
             if (p != this)
-            {
-                newAcceleration += (p.Position - _position).normalized * (G * p.Mass / Mathf.Pow(Vector3.Distance(_position, p.Position), 2));
-            }
-        }
+                newAcceleration +=  (G * p.Mass / Mathf.Pow(Vector3.Distance(_position, p.Position), 2)) * (p.Position - _position).normalized;
         return newAcceleration;
-
     }
 
     public void Reset()
     {
         position = startPosition;
         velocity = startVelocity;
-        
         transform.position = position;
-
         this.GetComponent<TrailRenderer>().Clear();
     }
 }
